@@ -41,6 +41,19 @@ class check_mk::config (
     content => "]\n",
     order   => 19,
   }
+
+  # ipaddresses
+  concat::fragment { 'ipaddresses-header':
+    target  => "${etc_dir}/check_mk/main.mk",
+    content => "ipaddresses = {\n",
+    order   => 50,    
+  }
+  concat::fragment { 'ipaddresses-footer':
+    target  => "${etc_dir}/check_mk/main.mk",
+    content => "}\n",
+    order   => 59,    
+  }
+
   Check_mk::Host <<| |>> {
     target => "${etc_dir}/check_mk/main.mk",
     notify => Exec['check_mk-refresh']

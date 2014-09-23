@@ -9,38 +9,72 @@ class check_mk::agent::install (
   $windows_installer = $check_mk::agent::windows_installer,
 ) {
 
+  case $::operatingsystem {
+      debian, ubuntu: {
+        $package_name_cmk = 'check-mk-agent'
+        $package_name_logwatch = 'check-mk-agent-logwatch'
+      }
+      default: {
+        $package_name_cmk = 'check_mk-agent'
+        $package_name_logwatch = 'check_mk-agent-logwatch'
+      }
+  }
+
+
   if $filestore {
     if ! defined(File[$workspace]) {
       file { $workspace:
         ensure => directory,
       }
     }
-    file { "${workspace}/check_mk-agent-${version}.noarch.rpm":
+
+
+    case $::operatingsystem {
+      centos, redhat: {
+        $agent_filename = "check_mk-agent-${version}.noarch.rpm"
+        $logwatch_filename = "check_mk-agent-logwatch-${version}.noarch.rpm"
+        $provider = 'rpm'
+      }
+      debian, ubuntu: {
+        $agent_filename = "check-mk-agent_${version}_all.deb"
+        $logwatch_filename = "check-mk-agent-logwatch_${version}_all.deb"
+        $provider = 'dpkg'
+      }
+      windows: {
+        # Nothing
+      }
+      default: {
+        fail("Unsupported OS in check_mk::agent - ${::operatingsystem}")
+      }
+    }
+
+    file { "${workspace}/${agent_filename}":
       ensure  => present,
-      source  => "${filestore}/check_mk-agent-${version}.noarch.rpm",
+      source  => "${filestore}/${agent_filename}",
       require => Package['xinetd'],
     }
-    file { "${workspace}/check_mk-agent-logwatch-${version}.noarch.rpm":
+    file { "${workspace}/${logwatch_filename}":
       ensure  => present,
-      source  => "${filestore}/check_mk-agent-logwatch-${version}.noarch.rpm",
+      source  => "${filestore}/${logwatch_filename}",
       require => Package['xinetd'],
     }
-    package { 'check_mk-agent':
+    package { $package_name_cmk:
       ensure   => present,
-      provider => 'rpm',
-      source   => "${workspace}/check_mk-agent-${version}.noarch.rpm",
-      require  => File["${workspace}/check_mk-agent-${version}.noarch.rpm"],
+      provider => $provider,
+      source   => "${workspace}/${agent_filename}",
+      require  => File["${workspace}/${agent_filename}"],
     }
-    package { 'check_mk-agent-logwatch':
+    package { $package_name_logwatch:
       ensure   => present,
-      provider => 'rpm',
-      source   => "${workspace}/check_mk-agent-logwatch-${version}.noarch.rpm",
+      provider => $provider,
+      source   => "${workspace}/${logwatch_filename}",
       require  => [
-        File["${workspace}/check_mk-agent-logwatch-${version}.noarch.rpm"],
-        Package['check_mk-agent'],
+        File["${workspace}/${logwatch_filename}"],
+        Package[$package_name_cmk],
       ],
     }
   }
+
   else {
     case $::operatingsystem {
       centos, redhat: {
@@ -49,8 +83,8 @@ class check_mk::agent::install (
         $check_mk_agent_logwatch_packagename = undef
       }
       debian, ubuntu: {
-        $check_mk_agent_packagename = 'check_mk-agent'
-        $check_mk_agent_logwatch_packagename = 'check_mk-agent-logwatch'
+        $check_mk_agent_packagename = $package_name_cmk
+        $check_mk_agent_logwatch_packagename = $package_name_logwatch
       }
       windows: {
         # Nothing
