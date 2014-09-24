@@ -1,0 +1,17 @@
+{
+  "name": "erwbgy-check_mk",
+  "version": "0.3.0",
+  "author": "erwbgy",
+  "summary": "install and configure check_mk",
+  "license": "Apache License, Version 2.0",
+  "source": "https://github.com/erwbgy/puppet-check_mk.git",
+  "project_page": "https://github.com/erwbgy/puppet-check_mk",
+  "issues_url": "https://github.com/erwbgy/puppet-check_mk/issues",
+  "description": "Install and configure check_mk agent and Nagios plugin",
+  "dependencies": [
+    {"name":"puppetlabs/stdlib","version_requirement":">= 2.6.0"},
+    {"name":"puppetlabs/concat","version_requirement":">= 1.0.3"},
+    {"name":"puppetlabs/xinetd","version_requirement":">= 1.2.0"},
+    {"name":"joshcooper/powershell","version_requirement":">= 0.0.6"}
+  ]
+}
